@@ -119,3 +119,5 @@ select
         where cs.cs_sold_date_sk is null
         sort by cs.cs_sold_date_sk
  ;
+
+analyze table catalog_sales compute statistics for columns;

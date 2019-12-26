@@ -98,3 +98,5 @@ select
       where cr.cr_returned_date_sk is null
       sort by cr_returned_date_sk
 ;
+
+analyze table catalog_returns compute statistics for columns;

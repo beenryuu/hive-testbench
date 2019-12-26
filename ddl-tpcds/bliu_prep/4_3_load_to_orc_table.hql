@@ -89,3 +89,5 @@ select
         where wr.wr_returned_date_sk is null
         sort by wr.wr_returned_date_sk 
 ;
+
+analyze table web_returns compute statistics for columns;

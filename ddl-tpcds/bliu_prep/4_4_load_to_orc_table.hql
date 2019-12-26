@@ -119,3 +119,5 @@ select
         where ws.ws_sold_date_sk is null
         sort by ws.ws_sold_date_sk
 ;
+
+analyze table web_sales compute statistics for columns;

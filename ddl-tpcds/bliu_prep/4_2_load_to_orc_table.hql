@@ -85,3 +85,5 @@ select
         where ss.ss_sold_date_sk is null
         sort by ss.ss_sold_date_sk
 ;
+
+analyze table store_sales compute statistics for columns;

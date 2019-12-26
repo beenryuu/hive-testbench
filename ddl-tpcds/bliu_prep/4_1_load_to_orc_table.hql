@@ -75,3 +75,5 @@ select
         where sr.sr_returned_date_sk is null
         sort by sr.sr_returned_date_sk
 ;
+
+analyze table store_returns compute statistics for columns;
