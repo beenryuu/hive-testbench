@@ -1,3 +1,5 @@
+use ${orc_db} ;
+
 analyze table call_center compute statistics for columns;
 analyze table catalog_page compute statistics for columns;
 analyze table catalog_returns compute statistics for columns;

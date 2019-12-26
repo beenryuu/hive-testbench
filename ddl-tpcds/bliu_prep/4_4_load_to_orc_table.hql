@@ -1,3 +1,5 @@
+use ${orc_db} ;
+
 drop table if exists web_sales;
 create table web_sales
 (

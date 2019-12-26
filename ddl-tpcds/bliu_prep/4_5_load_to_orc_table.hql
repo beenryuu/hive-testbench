@@ -1,3 +1,5 @@
+use ${orc_db} ;
+
 drop table if exists catalog_returns;
 create table catalog_returns
 (
