@@ -3,7 +3,7 @@
 DEBUG_SCRIPT=1
 
 function usage {
-	echo "Usage: tpcds-setup.sh scale_factor [temp_directory]"
+	echo "Usage: tpcds-setup.sh scale_factor target_directory text_db_name orc_db_name"
 	exit 1
 }
 
@@ -32,6 +32,10 @@ FACTS="store_sales store_returns web_sales web_returns catalog_sales catalog_ret
 # Get the parameters.
 SCALE=$1
 DIR=$2
+TXT_DB=$3
+ORC_DB=$4
+
+
 if [ "X$BUCKET_DATA" != "X" ]; then
 	BUCKETS=13
 	RETURN_BUCKETS=13
@@ -47,13 +51,20 @@ fi
 if [ X"$SCALE" = "X" ]; then
 	usage
 fi
-if [ X"$DIR" = "X" ]; then
-	DIR=/tmp/tpcds-generate
-fi
 if [ $SCALE -eq 1 ]; then
 	echo "Scale factor must be greater than 1"
 	exit 1
 fi
+if [ X"$DIR" = "X" ]; then
+	usage
+fi
+if [ X"$TXT_DB" = "X" ]; then
+	usage
+fi
+if [ X"$ORC_DB" = "X" ]; then
+	usage
+fi
+
 
 # Do the actual data load.
 hdfs dfs -mkdir -p ${DIR}
@@ -76,7 +87,7 @@ HIVE="beeline -u 'jdbc:hive2://localhost:2181/;serviceDiscoveryMode=zooKeeper;zo
 
 # Create the text/flat tables as external tables. These will be later be converted to ORCFile.
 echo "Loading text data into external tables."
-runcommand "$HIVE  -i settings/load-flat.sql -f ddl-tpcds/text/alltables.sql --hivevar DB=tpcds_bliu_text_${SCALE} --hivevar LOCATION=${DIR}/${SCALE}"
+runcommand "$HIVE  -i settings/load-flat.sql -f ddl-tpcds/text/alltables.sql --hivevar DB=${TXT_DB} --hivevar LOCATION=${DIR}/${SCALE}"
 
 # Create the partitioned and bucketed tables.
 if [ "X$FORMAT" = "X" ]; then
@@ -101,8 +112,9 @@ REDUCERS=$((test ${SCALE} -gt ${MAX_REDUCERS} && echo ${MAX_REDUCERS}) || echo $
 for t in ${DIMS}
 do
 	COMMAND="$HIVE  -i settings/load-partitioned.sql -f ddl-tpcds/bin_partitioned/${t}.sql \
-	    --hivevar DB=tpcds_bliu_bin_partitioned_${FORMAT}_${SCALE} --hivevar SOURCE=tpcds_bliu_text_${SCALE} \
-            --hivevar SCALE=${SCALE} \
+	    --hivevar DB=${ORC_DB} \
+	    --hivevar SOURCE=${TXT_DB} \
+        --hivevar SCALE=${SCALE} \
 	    --hivevar REDUCERS=${REDUCERS} \
 	    --hivevar FILE=${FORMAT}"
 	echo -e "${t}:\n\t@$COMMAND $SILENCE && echo 'Optimizing table $t ($i/$total).'" >> $LOAD_FILE
@@ -112,10 +124,13 @@ done
 for t in ${FACTS}
 do
 	COMMAND="$HIVE  -i settings/load-partitioned.sql -f ddl-tpcds/bin_partitioned/${t}.sql \
-	    --hivevar DB=tpcds_bliu_bin_partitioned_${FORMAT}_${SCALE} \
-            --hivevar SCALE=${SCALE} \
-	    --hivevar SOURCE=tpcds_bliu_text_${SCALE} --hivevar BUCKETS=${BUCKETS} \
-	    --hivevar RETURN_BUCKETS=${RETURN_BUCKETS} --hivevar REDUCERS=${REDUCERS} --hivevar FILE=${FORMAT}"
+	    --hivevar DB=${ORC_DB} \
+        --hivevar SCALE=${SCALE} \
+	    --hivevar SOURCE=${TXT_DB} \
+	    --hivevar BUCKETS=${BUCKETS} \
+	    --hivevar RETURN_BUCKETS=${RETURN_BUCKETS} \
+	    --hivevar REDUCERS=${REDUCERS} \
+	    --hivevar FILE=${FORMAT}"
 	echo -e "${t}:\n\t@$COMMAND $SILENCE && echo 'Optimizing table $t ($i/$total).'" >> $LOAD_FILE
 	i=`expr $i + 1`
 done
@@ -124,6 +139,6 @@ make -j 1 -f $LOAD_FILE
 
 
 echo "Loading constraints"
-runcommand "$HIVE -f ddl-tpcds/bin_partitioned/add_constraints.sql --hivevar DB=tpcds_bliu_bin_partitioned_${FORMAT}_${SCALE}"
+runcommand "$HIVE -f ddl-tpcds/bin_partitioned/add_constraints.sql --hivevar DB=${ORC_DB}"
 
 echo "Data loaded into database ${DATABASE}."
