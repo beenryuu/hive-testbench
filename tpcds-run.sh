@@ -53,9 +53,14 @@ echo "Start running TPC-DS queries:"
 
 HIVE="beeline -u 'jdbc:hive2://localhost:2181/${DB};serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2?tez.queue.name=default' "
 
-for i in `seq 1 1`
+for i in `seq 1 99`
 do
-        runcommand "$HIVE -i settings/load-partitioned.sql -f sample-queries-tpcds/query${i}.sql --hivevar REDUCERS=${REDUCERS} > ${LOG_DIR}/query${i}_result.txt 2>&1"
+	echo "Start trying query${i}"
+        # runcommand "$HIVE -i settings/load-partitioned.sql -f sample-queries-tpcds/query${i}.sql --hivevar REDUCERS=${REDUCERS} > ${LOG_DIR}/query${i}_result.txt 2>&1"
+        CMD="$HIVE -i settings/load-partitioned.sql -f sample-queries-tpcds/query${i}.sql --hivevar REDUCERS=${REDUCERS}"
+	echo "Runing query$i as : "$CMD
+        time $CMD
+	echo "Query$i completed as $?"
 done
 
-echo "Query run completed."
+echo "All queries completed."
