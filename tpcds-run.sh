@@ -33,6 +33,7 @@ FACTS="store_sales store_returns web_sales web_returns catalog_sales catalog_ret
 # Get the parameters.
 DB=$1
 LOG_DIR=$2
+REDUCERS=2500
 
 if [ "X$DEBUG_SCRIPT" != "X" ]; then
 	set -x
@@ -55,11 +56,11 @@ fi
 
 echo "Start running TPC-DS queries:"
 
-HIVE="beeline -u 'jdbc:hive2://localhost:2181/$DB;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2?tez.queue.name=default' "
+HIVE="beeline -u 'jdbc:hive2://localhost:2181/${DB};serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2?tez.queue.name=default' "
 
 for i in `seq 1 99`
 do
-    runcommand "$HIVE -i settings/load-partitioned.sql -f sample-queries-tpcds/query${i}.sql > $LOG_DIR/query$i_result.txt"
+    runcommand "$HIVE -i settings/load-partitioned.sql -f sample-queries-tpcds/query${i}.sql --hivevar REDUCERS=${REDUCERS} > ${LOG_DIR}/query${i}_result.txt"
 done
 
 echo "Query run completed."
