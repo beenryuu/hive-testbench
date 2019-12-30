@@ -26,11 +26,6 @@ if [ $? -ne 0 ]; then
 	exit 1
 fi
 
-# Tables in the TPC-DS schema.
-DIMS="date_dim time_dim item customer customer_demographics household_demographics customer_address store promotion warehouse ship_mode reason income_band call_center web_page catalog_page web_site"
-FACTS="store_sales store_returns web_sales web_returns catalog_sales catalog_returns inventory"
-
-# Get the parameters.
 DB=$1
 LOG_DIR=$2
 REDUCERS=2500
@@ -44,7 +39,7 @@ if [ X"$DB" = "X" ]; then
 	usage
 fi
 if [ X"$LOG_DIR" = "X" ]; then
-	DIR=/tmp/tpcds-run
+	LOG_DIR=/tmp/tpcds-run
 fi
 
 # Do the actual data load.
@@ -58,9 +53,10 @@ echo "Start running TPC-DS queries:"
 
 HIVE="beeline -u 'jdbc:hive2://localhost:2181/${DB};serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2?tez.queue.name=default' "
 
-for i in `seq 1 99`
+for i in `seq 1 1`
 do
-    runcommand "$HIVE -i settings/load-partitioned.sql -f sample-queries-tpcds/query${i}.sql --hivevar REDUCERS=${REDUCERS} > ${LOG_DIR}/query${i}_result.txt"
+    echo "$HIVE -i settings/load-partitioned.sql -f sample-queries-tpcds/query${i}.sql --hivevar REDUCERS=${REDUCERS} &> ${LOG_DIR}/query${i}_result.txt"
+    runcommand "$HIVE -i settings/load-partitioned.sql -f sample-queries-tpcds/query${i}.sql --hivevar REDUCERS=${REDUCERS} &> ${LOG_DIR}/query${i}_result.txt"
 done
 
 echo "Query run completed."
