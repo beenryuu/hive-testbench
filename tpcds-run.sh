@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEBUG_SCRIPT=1
+# DEBUG_SCRIPT=1
 
 function usage {
 	echo "Usage: tpcds-run.sh database log_dir"
@@ -55,8 +55,7 @@ HIVE="beeline -u 'jdbc:hive2://localhost:2181/${DB};serviceDiscoveryMode=zooKeep
 
 for i in `seq 1 1`
 do
-    echo "$HIVE -i settings/load-partitioned.sql -f sample-queries-tpcds/query${i}.sql --hivevar REDUCERS=${REDUCERS} &> ${LOG_DIR}/query${i}_result.txt"
-    runcommand "$HIVE -i settings/load-partitioned.sql -f sample-queries-tpcds/query${i}.sql --hivevar REDUCERS=${REDUCERS} &> ${LOG_DIR}/query${i}_result.txt"
+    runcommand "$HIVE -i settings/load-partitioned.sql -f sample-queries-tpcds/query${i}.sql --hivevar REDUCERS=${REDUCERS}"
 done
 
 echo "Query run completed."
