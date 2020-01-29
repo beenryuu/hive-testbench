@@ -1,0 +1,1 @@
+set hive.orc.compute.splits.num.threads=48;

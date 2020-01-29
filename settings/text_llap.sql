@@ -1,0 +1,1 @@
+set fs.s3a.experimental.input.fadvise=sequential;
