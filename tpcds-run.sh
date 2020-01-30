@@ -30,6 +30,8 @@ fi
 
 echo "Start running TPC-DS queries:"
 
+# LLAP
+#HIVE="beeline -u 'jdbc:hive2://localhost/${DB};transportMode=http;httpPath=cliservice;ssl=true;retries=3' -n csso_clouderanissan -w password.file"
 HIVE="beeline -u 'jdbc:hive2://localhost:2181/${DB};serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2?tez.queue.name=default' "
 
 for i in `seq 1 99`
